@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from src.config import config
 from src.database.repository import DatabaseRepository
+from src.exact_search import ExactMatchResult, search_exact_match
 
 # English stopwords set per scikit-learn specification
 ENGLISH_STOP_WORDS = {
@@ -233,3 +234,9 @@ class TFIDFSearchEngine:
                 break
 
         return results
+
+    def search_exact(self, query: str, top_k: int = config.DEFAULT_TOP_K) -> List[Dict[str, Any]]:
+        """Exact substring search across loaded chunks."""
+        matches = search_exact_match(query, self.chunk_metadata)
+        return matches[:top_k]
+
