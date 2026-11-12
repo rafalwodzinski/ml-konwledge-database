@@ -33,10 +33,11 @@ ENV/
 env/
 
 # Data and SQLite databases
-data/*.db
-data/*.sqlite
-data/*.sqlite3
+data/*.db*
+data/*.sqlite*
+data/*.sqlite3*
 !data/.gitkeep
+!data/raw_documents/.gitkeep
 
 # Cache & Local downloads
 .cache/
@@ -57,4 +58,3 @@ htmlcov/
 
 # Environment variables
 .env
-
