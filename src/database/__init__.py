@@ -1,6 +1,6 @@
-"""Database package for SQLite connection and schema management."""
+"""Database package for SQLite connection, schema and repository operations."""
 
-from src.database.connection import get_db_connection, init_database
+from src.database.connection import db_session, get_db_connection, init_database
+from src.database.repository import DatabaseRepository
 
-__all__ = ["get_db_connection", "init_database"]
-
+__all__ = ["db_session", "get_db_connection", "init_database", "DatabaseRepository"]
