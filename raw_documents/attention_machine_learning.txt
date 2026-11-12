@@ -1,0 +1,140 @@
+In machine learning, attention is a method that determines the importance of, or "attends to", each component in a sequence relative to the other components in that sequence. In natural language processing, importance is represented by weights assigned to each word in a sentence. More generally, attention encodes vectors called token embeddings across a fixed-width sequence that can range from tens to millions of tokens in size.
+Earlier designs implemented the attention mechanism in a serial recurrent neural network (RNN) language translation system, but a more recent design, namely the transformer, removed the slower sequential RNN and relied more heavily on the faster parallel attention scheme, which has largely replaced RNN in frontier models since BERT, T5 and GPT.
+Inspired by ideas about attention in humans, the attention mechanism was developed to address the weaknesses of using information from the hidden layers of recurrent neural networks. Recurrent neural networks favor information contained in words at the end of a sentence and thus deemed more recent, thereby tending to attenuate the significance and associated predictive weight assigned to information earlier in the sentence. Attention allows a token equal access to any part of a sentence directly, rather than only through the previous state.
+
+
+== History ==
+
+Academic reviews of the history of the attention mechanism are provided in Niu et al. and Soydaner.
+
+
+=== Predecessors ===
+Selective attention in humans had been well studied in neuroscience and cognitive psychology. In 1953, Colin Cherry studied selective attention in the context of audition, known as the cocktail party effect.
+In 1958, Donald Broadbent proposed the filter model of attention. Selective attention of vision was studied in the 1960s by George Sperling's partial report paradigm. It was also noticed that saccade control is modulated by cognitive processes, insofar as the eye moves preferentially towards areas of high salience. As the fovea of the eye is small, the eye cannot sharply resolve the entire visual field at once. The use of saccade control allows the eye to quickly scan important features of a scene.
+These research developments inspired algorithms such as the Neocognitron and its variants. Meanwhile, developments in neural networks had inspired circuit models of biological visual attention. One well-cited network from 1998, for example, was inspired by the low-level primate visual system. It produced saliency maps of images using handcrafted (not learned) features, which were then used to guide a second neural network in processing patches of the image in order of reducing saliency.
+A key aspect of attention mechanism can be written (schematically) as ∑i⟨(query)i,(key)i⟩(value)iwhere the angled brackets denote dot product. This shows that it involves a multiplicative operation. Multiplicative operations within artificial neural networks had been studied under the names of higher-order neural networks, multiplication units, sigma-pi units, fast weight controllers, and hyper-networks.
+In fast weight controller, one of its two networks has  "fast weights" or "dynamic links" (1981). A slow neural network learns by gradient descent to generate keys and values for computing the weight changes of the fast neural network which computes answers to queries. This is dot-product attention without softmax.
+
+
+=== Recurrent attention ===
+During the deep learning era, attention mechanism was developed to solve similar problems in encoding-decoding.
+In machine translation, the seq2seq model, as it was proposed in 2014, would encode an input text into a fixed-length vector, which would then be decoded into an output text. If the input text is long, the fixed-length vector would be unable to carry enough information for accurate decoding. An attention mechanism was proposed to solve this problem.
+An image captioning model was proposed in 2015, citing inspiration from the seq2seq model. that would encode an input image into a fixed-length vector. (Xu et al 2015), citing (Bahdanau et al 2014), applied the attention mechanism as used in the seq2seq model to image captioning.
+
+
+=== Transformer ===
+
+One problem with seq2seq models was their use of recurrent neural networks, which are not parallelizable as both the encoder and the decoder must process the sequence token-by-token. Decomposable attention attempted to solve this problem by processing the input sequence in parallel, before computing a "soft alignment matrix" (alignment is the terminology used by Bahdanau et al) in order to allow for parallel processing.
+The idea of using the attention mechanism for self-attention, instead of in an encoder-decoder (cross-attention), was also proposed during this period, such as in differentiable neural computers and neural Turing machines. It was termed intra-attention where an LSTM is augmented with a memory network as it encodes an input sequence.
+These strands of development were brought together in 2017 with the Transformer architecture, published in the Attention Is All You Need paper.
+
+
+== Dot-product attention ==
+
+Given three matrices: Q∈ℝm×dQ,K∈ℝn×dK and V∈ℝn×dV, the scaled dot-product attention is defined as:Attention(Q,K,V)=softmax(λQKT)V∈ℝm×dvwhere T denotes transpose and the softmax function is applied independently to every row of its argument. λ is a scalar. It is usually set to 1/dK.
+The matrix Q contains m queries, while matrices K,V jointly contain n key-value pairs. Value vectors in matrix V are weighted using the weights resulting from the softmax operation, so that the rows of the m-by-dv output matrix are confined to the convex hull of the points in ℝdv given by the rows of V.
+Attention mechanism without positional encoding is permutation-invariant.
+
+
+=== Masking ===
+For decoder self-attention, all-to-all attention is inappropriate, because during the autoregressive decoding process, the decoder cannot attend to future outputs that have yet to be decoded. This can be solved by forcing the attention weights wij=0 for all i<j, called "causal masking". This attention mechanism is the "causally masked self-attention".
+Formally,Attention(Q,K,V)=softmax(QKTdk+M)VwhereM=[0−∞−∞…−∞00−∞…−∞000…−∞⋮⋮⋮⋱⋮000…0]The effect of adding −∞ is to zero out the corresponding attention weight, after applying the softmax.
+Other forms of masking are possible, to enforce different types of attention weight patterns.
+
+
+=== Multi-head ===
+
+Several dot-product attention mechanisms can be combined, resulting in the Multi-Head Attention (MHA):MultiHead(Q,K,V)=Concat(head1,...,headh)WOwhere each head is computed with QKV attention as:headi=Attention(QWiQ,KWiK,VWiV)and WiQ,WiK,WiV, and WO are learnable matrices.
+
+
+=== Self-attention ===
+Self-attention is essentially the same as cross-attention, except that query, key, and value vectors all come from the same model. Both encoder and decoder can use self-attention, but with subtle differences.
+
+For encoder self-attention, we can start with a simple encoder without self-attention, such as an "embedding layer", which simply converts each input word into a vector by a fixed lookup table. This gives a sequence of hidden vectors h0,h1,…. These can then be applied to a dot-product attention mechanism, to obtainh0′=Attention(h0WQ,HWK,HWV)h1′=Attention(h1WQ,HWK,HWV)⋮or more succinctly, H′=Attention(HWQ,HWK,HWV). This can be applied repeatedly, to obtain a multilayered encoder. This is the "encoder self-attention", sometimes called the "all-to-all attention", as the vector at every position can attend to every other.
+
+
+=== Historical variants ===
+Lernmatrix, or correlation matrix memory, or linear attention, is dot-product attention, with causal masking, without softmax.
+Bahdanau et al (2014) proposed an additive form of attentionzij=tanh⁡(qiWQ+kjWK)wTwhere WQ,WK are learnable matrices, and w is a learnable vector.
+Luong et al (2015) attempted to improve upon Bahdanau et al (2014). They tested at least two different forms of attentions, two of which are the modern form of dot-product attention. They worked on seq2seq machine translation. A multilayered LSTM processes an input sequence x1,…,xn (such as a sequence of words in an English sequence) into a sequence of vectors k1,…,kn. It then receives a special token <EOS> ("end of sequence") to mark as x0′, the beginning of the output sequence. It then proceeds as follows:
+
+Given another output xi′, run the LSTM for another step, obtaining output qi.
+qi pays attention to input key-value pairs. The key and value vectors are the same: ki=vi.
+The attention scores zij are calculated as either zij=qiWkjT, as in modern dot-product attention, or as zij=tanh⁡(qiWQ+kjWK)wT, as in Bahdanau et al (2014).
+The output vector is oi=1∑j≤iezij∑j≤iezijvj.
+The output word is sampled from softmax⁡(tanh⁡(oiWQ+qiWQ)W).
+
+
+== Linear attention ==
+Consider a sequence of length L. The dot-product softmax attention mechanism costs O(L2) to process the entire sequence. After that, the attention mechanism needs another O(L) to process each new token. Consequently, many variants have been proposed to save the cost.
+
+
+=== Correlation matrix memory ===
+Removing the softmax results in the Lernmatrix, or correlation matrix memory. In the standard causally masked dot-product attention mechanism, the input sequence of vectors x1,x2,… are converted to a triple sequence of query-key-value vectors qi=WQxi,ki=WKxi,vi=WVxi via matrices WQ,WK,WV, and the t-th output vector is ot=∑i≤teqtkiT∑j≤teqtkjTvi. 
+A naive linear attention mechanism is to take off the softmax: ot=qt(∑i≤tkiTvi). The thing in the brackets is a memory matrix Mt, such that ot=qtMt, and the memory updates via Mt=Mt−1+ktTvt.
+More generally, memory can decay via Mt=μtMt−1+ηtktTvt, where μt,ηt are parameters that may depend on Mt−1,kt,vt themselves.
+
+
+=== Kernel method ===
+The main difference between correlation matrix memory and dot-product attention is that neither the exponential sum ∑j≤teqtkjT nor the exponentially-weighted sum ∑i≤teqtkiTvi is a matrix product. This can be converted to a correlation matrix memory by using the kernel method.
+Specifically, define the function K(q,k):=eqkT. It is a kernel function, so it can be reproduced as the inner product in a Hilbert space H (the Reproducing Kernel Hilbert Space) . Let ϕ:ℝdK→H be the feature function, then K(q,k)=ϕ(q)ϕ(k)T, and both sums factor:ot=ϕ(qt)Mtϕ(qt)mtT,Mt:=∑i≤tϕ(ki)Tvi,mt:=∑i≤tϕ(ki)Since both Mt,mt are iteratively updated, computing a new token takes O(1) time and O(1) space, and computing the full length-L sequence takes O(N) time and O(1) space.
+The main issue is that ϕ has infinitely many dimensions. Nevertheless, it can be approximated in finitely many dimensions. That is, there exists ϕ~:ℝdK→ℝN for some N such that K(q,k)≈ϕ~(q)ϕ~(k)T. Since K is just a scaled version of the RBF kernel, and the RBF kernel has been studied extensively, there are many approximations to choose from.
+
+
+==== Random Fourier features ====
+A particular choice uses random Fourier features of the RBF, which uses the exact identity e‖x−y‖2/σ2=𝔼w∼𝒩(0,σ2I)[cos⁡⟨w,x⟩cos⁡⟨w,y⟩+sin⁡⟨w,x⟩sin⁡⟨w,y⟩]where 𝒩 is the normal distribution. Consequently, by taking finitely many samples of w1,…,wD,∼𝒩(0,σ2I), we havee⟨x,y⟩/σ2≈⟨e‖x‖2/2σ2φ(x),e‖y‖2/2σ2φ(y)⟩,φ(x)=1D[cos⁡⟨w1,x⟩,sin⁡⟨w1,x⟩,⋯cos⁡⟨wD,x⟩,sin⁡⟨wD,x⟩]TRandom Fourier features may have negative entries, but the RBF kernel is always positive. 
+
+
+==== Performer ====
+Performer (2020) improves on it by exploiting two other identities:𝔼w∼𝒩(0,I)[e⟨w,x⟩−‖x‖2/2e⟨w,y⟩−‖y‖2/2]=12e−‖x‖2+‖y‖22𝔼w∼𝒩(0,I)[e⟨w,x⟩e⟨w,y⟩+e−⟨w,x⟩e−⟨w,y⟩]These give two random feature maps. In either one, all features are positive. It also samples w1,...,wD by orthogonal random features, a low-discrepancy method. They are first independently sampled from the normal distribution N(0,σ2I), then orthogonalized by Gram–Schmidt process, then scaled to a length according to the chi distribution χ(d). If D>d, then this process is repeated for D/d times, generating up to d vectors at each generation until D vectors are generated. 
+
+
+=== Other matrix memories ===
+In DeltaNet, a form of forgetting is implemented, by subtraction. Beginning with the memory matrix update Mt=Mt−1+ktTvt, forgetting is implemented by the following modification:Mt=Mt−1+ηtktT(vt−ktMt−1)where ηt measures how much the memory matrix updates. This delta-update rule satisfies the following properties:
+
+For any value of ηt, and any k′ perpendicular to kt, k′Mt=k′Mt−1.
+When ηt=0, Mt=Mt−1.
+When ηt=1, Mt=ktTvt+(I−ktTkt)Mt−1, which satisfies ktMt=vt when kt is a unit vector.
+In DeltaNet, η is computed by a linear-sigmoid layer. That is, ηt=σ(xtwT+b), where w is a learnable weight vector, b is a learnable bias, and σ is a sigmoid activation function, usually the logistic function.
+Mamba uses the decaying update Mt=μtMt−1+ηtktTvt, with scalar μt,ηt, and output ot=qtMt. The scalar ηt is designed to be a linear-softplus function of input xt. That is, ηt=softplus⁡(xtwT+b) where w is a learned vector, and b is a learned scalar. The activation function is picked to be softplus, because ηt must be positive. The scalar μt is designed to be μt=e−Aηt, where A is a learned positive scalar.
+More generally, μt,ηt can both be diagonal matrices. A diagonal μt allows different coordinates in the previous value vectors to be decayed away at different rates, and a diagonal ηt allows different coordinates in the new value vector to be remembered at different rates.
+RetNet implements a form of relative positional encoding by positional update with a matrix form μ in Mt=μMt−1+ηtktTvt. When μ is constant multiple of identity, it is an exponentially decaying relative positional encoding. When μ is a constant rotational matrix, it is a form of rotary positional encoding.
+Kimi Delta Attention combines Mamba with DeltaM~t=Mt−1diag⁡(μt) (decay)Mt=M~t+ηtktT(vt−ktM~t) (delta-rule update)where the decay-rate diag⁡(μt) is a diagonal matrix, and the memory update rate ηt is a scalar, calculated by:μt=σ(xtWμ)ηt=e−Asoftplus⁡(xtWη+b)where Wμ,Wη,b are learned matrices of the appropriate sizes, and A is a learned positive scalar. The functions σ (the sigmoid function), exponent, and softplus are applied componentwise.
+
+
+== Optimizations ==
+
+
+=== Flash attention ===
+The size of the attention matrix is proportional to the square of the number of input tokens. Therefore, when the input is long, calculating the attention matrix requires a lot of GPU memory. Flash attention is an implementation that reduces the memory needs and increases efficiency without sacrificing accuracy. It achieves this by partitioning the attention computation into smaller blocks that fit into the GPU's faster on-chip memory, reducing the need to store large intermediate matrices and thus lowering memory usage while increasing computational efficiency.
+
+
+=== KV cache ===
+
+
+== Applications ==
+Attention is widely used in natural language processing, computer vision, and speech recognition. In natural language processing, it improves context understanding in tasks like question answering and summarization. In vision, visual attention helps models focus on relevant image regions, enhancing object detection and image captioning.
+
+
+=== Attention maps as explanations for vision transformers ===
+
+From the original paper on vision transformers (ViT), visualizing attention scores as a heat map (called saliency maps or attention maps) has become an important and routine way to inspect the decision making process of ViT models. One can compute the attention maps with respect to any attention head at any layer, while the deeper layers tend to show more semantically meaningful visualization. Attention rollout is a recursive algorithm to combine attention scores across all layers, by computing the dot product of successive attention maps.
+Because vision transformers are typically trained in a self-supervised manner, attention maps are generally not class-sensitive. When a classification head is attached to the ViT backbone, class-discriminative attention maps (CDAM) combines attention maps and gradients with respect to the class [CLS] token. Some class-sensitive interpretability methods originally developed for convolutional neural networks can be also applied to ViT, such as GradCAM, which back-propagates the gradients to the outputs of the final attention layer.
+Using attention as basis of explanation for the transformers in language and vision is not without debate. While some pioneering papers analyzed and framed attention scores as explanations, higher attention scores do not always correlate with greater impact on model performances.
+
+
+== See also ==
+Attention
+Dynamic neural network
+Recurrent neural network
+seq2seq
+Transformer (deep learning architecture)
+
+
+== References ==
+
+
+== External links ==
+Olah, Chris; Carter, Shan (September 8, 2016). "Attention and Augmented Recurrent Neural Networks". Distill. 1 (9). Distill Working Group. doi:10.23915/distill.00001.
+Jurafsky, Dan; Martin, James H. (January 2022). Speech and Language Processing (3rd draft ed.). Ch. 10.4 (Attention) and ch. 9.7 (Self-Attention Networks: Transformers).
+Graves, Alex (2020). Attention and Memory in Deep Learning (Video lecture). DeepMind / UCL – via YouTube.
